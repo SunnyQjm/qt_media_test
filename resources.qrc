@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>close.png</file>
+        <file>camera.png</file>
+        <file>capture.png</file>
+        <file>exit.png</file>
+        <file>stop.png</file>
+        <file>recorder.png</file>
+    </qresource>
+</RCC>
