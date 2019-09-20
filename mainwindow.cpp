@@ -5,6 +5,8 @@
 #include <QBuffer>
 #include <QCameraInfo>
 #include <QCameraViewfinder>
+#include <QMessageBox>
+#include <QFile>
 
 void MainWindow::initCamera()
 {
@@ -55,7 +57,11 @@ void MainWindow::initImageCapture()
 
 void MainWindow::initVideoRecorder()
 {
-
+    // 创建QMediaRecorder对象
+    mediaRecorder = new QMediaRecorder(curCamera, this);
+    ui->chkMute->setChecked(mediaRecorder->isMuted());
+    connect(mediaRecorder, SIGNAL(stateChanged(QMediaRecorder::State)), this, SLOT(onVideostatechanged(QMediaRecorder::State)));
+    connect(mediaRecorder, SIGNAL(durationChanged(qint64)), this, SLOT(onVideodurationchanged(qint64)));
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -127,7 +133,7 @@ void MainWindow::onImagereadyforcapture(bool ready)
 void MainWindow::onImagecaptured(int id, const QImage &preview)
 {
     // 抓取图片后显示
-    Q_UNUSED(id);
+    Q_UNUSED(id)
     QImage scaledImage = preview.scaled(ui->labelCaptureImage->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     ui->labelCaptureImage->setPixmap(QPixmap::fromImage(scaledImage));
 }
@@ -141,12 +147,14 @@ void MainWindow::onImagesaved(int id, const QString &fileName)
 
 void MainWindow::onVideostatechanged(QMediaRecorder::State state)
 {
-
+    // 状态变化
+    ui->startRecorder->setEnabled(state != QMediaRecorder::RecordingState);
+    ui->stopRecorder->setEnabled(state == QMediaRecorder::RecordingState);
 }
 
 void MainWindow::onVideodurationchanged(qint64 duration)
 {
-
+    ui->labelDuration->setText(QString("录制时间：%1 秒").arg(duration / 1000));
 }
 
 /**
@@ -176,12 +184,31 @@ void MainWindow::on_capture_triggered()
 
 void MainWindow::on_startRecorder_triggered()
 {
-
+    // 开始录像
+    if(!mediaRecorder->isAvailable()) {
+        QMessageBox::critical(this, "错误", "不支持视频录制 \n mediaRecorder->isAvailable() == false");
+        return;
+    }
+    if(curCamera->captureMode() != QCamera::CaptureVideo) {
+        curCamera->setCaptureMode(QCamera::CaptureVideo);
+    }
+    QString selectedFile = ui->editOutputFile->text().trimmed();
+    if(selectedFile.isEmpty()) {
+        QMessageBox::critical(this, "错误", "请先设置录音输出文件");
+        return;
+    }
+    if(QFile::exists(selectedFile)) {
+        if(!QFile::remove(selectedFile)) {
+            QMessageBox::critical(this, "错误", "所设置的录音输出文件被占用，无法删除");
+        }
+    }
+    mediaRecorder->setOutputLocation(QUrl::fromLocalFile(selectedFile));
+    mediaRecorder->record();
 }
 
 void MainWindow::on_stopRecorder_triggered()
 {
-
+    mediaRecorder->stop();
 }
 
 void MainWindow::on_exit_triggered()
