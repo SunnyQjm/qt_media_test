@@ -13,6 +13,8 @@ void MainWindow::initCamera()
     ui->comboCamera->addItem(curCameraInfo.description());
     ui->comboCamera->setCurrentIndex(0);
 
+    qDebug() << curCameraInfo.description() << endl;
+    qDebug() << curCameraInfo.deviceName() << endl;
     // 创建摄像头对象
     curCamera = new QCamera(curCameraInfo, this);
     QCameraViewfinderSettings viewFinderSettings;
@@ -126,12 +128,15 @@ void MainWindow::onImagecaptured(int id, const QImage &preview)
 {
     // 抓取图片后显示
     Q_UNUSED(id);
-//    QImage scaledImage = preview.scaled(ui->)
+    QImage scaledImage = preview.scaled(ui->labelCaptureImage->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    ui->labelCaptureImage->setPixmap(QPixmap::fromImage(scaledImage));
 }
 
 void MainWindow::onImagesaved(int id, const QString &fileName)
 {
-
+    Q_UNUSED(id);
+    // 文件保存后显示保存的文件名
+    labelInfo->setText("图片保存为：" + fileName);
 }
 
 void MainWindow::onVideostatechanged(QMediaRecorder::State state)
@@ -162,7 +167,11 @@ void MainWindow::on_closeCamera_triggered()
 
 void MainWindow::on_capture_triggered()
 {
-
+    // 抓图按钮
+    if(curCamera->captureMode() != QCamera::CaptureStillImage) {
+        curCamera->setCaptureMode(QCamera::CaptureStillImage);
+    }
+    imageCapture->capture();
 }
 
 void MainWindow::on_startRecorder_triggered()
