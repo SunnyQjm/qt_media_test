@@ -7,6 +7,9 @@
 #include <QCameraViewfinder>
 #include <QMessageBox>
 #include <QFile>
+#include <QVideoProbe>
+#include <QDir>
+#include <QFileDialog>
 
 void MainWindow::initCamera()
 {
@@ -19,13 +22,13 @@ void MainWindow::initCamera()
     qDebug() << curCameraInfo.deviceName() << endl;
     // 创建摄像头对象
     curCamera = new QCamera(curCameraInfo, this);
-    QCameraViewfinderSettings viewFinderSettings;
-    viewFinderSettings.setResolution(640, 480);
-    viewFinderSettings.setMinimumFrameRate(15.0);
-    viewFinderSettings.setMaximumFrameRate(30.0);
-    curCamera->setViewfinderSettings(viewFinderSettings);
-    curCamera->setViewfinder(ui->viewFinder);
-    curCamera->setCaptureMode(QCamera::CaptureViewfinder);
+//    QCameraViewfinderSettings viewFinderSettings;
+//    viewFinderSettings.setResolution(640, 480);
+//    viewFinderSettings.setMinimumFrameRate(15.0);
+//    viewFinderSettings.setMaximumFrameRate(30.0);
+//    curCamera->setViewfinderSettings(viewFinderSettings);
+//    curCamera->setViewfinder(ui->viewFinder);
+//    curCamera->setCaptureMode(QCamera::CaptureViewfinder);
 
     // 判断摄像头是否支持抓图、录制视频
     ui->checkStillImage->setChecked(
@@ -64,6 +67,14 @@ void MainWindow::initVideoRecorder()
     connect(mediaRecorder, SIGNAL(durationChanged(qint64)), this, SLOT(onVideodurationchanged(qint64)));
 }
 
+void MainWindow::initVideoPlayer()
+{
+    player = new QMediaPlayer(this);
+    player->setNotifyInterval(2000);
+    player->setVideoOutput(ui->videoWidget);
+
+}
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -83,7 +94,8 @@ MainWindow::MainWindow(QWidget *parent) :
         initCamera();               // 初始化摄像头
         initImageCapture();         // 初始化静态抓图
         initVideoRecorder();        // 初始化视频录制
-        curCamera->start();
+        initVideoPlayer();
+//        curCamera->start();
     }
 }
 
@@ -214,4 +226,18 @@ void MainWindow::on_stopRecorder_triggered()
 void MainWindow::on_exit_triggered()
 {
     this->close();
+}
+
+void MainWindow::on_openVideo_clicked()
+{
+    // 打开文件
+    QString curPath = QDir::homePath();         // 获取系统当前目录
+    QString dlgTitle = "选择视频文件";            // 对话框标题
+    QString filter = "wmv文件(*.wmv);;mp4文件(*.mp4);;所有文件(*.*)";
+    QString file = QFileDialog::getOpenFileName(this, dlgTitle, curPath, filter);
+    if(file.isEmpty())
+        return;
+    QFileInfo fileInfo(file);
+    player->setMedia(QUrl::fromLocalFile(file));
+    player->play();
 }

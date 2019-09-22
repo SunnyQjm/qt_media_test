@@ -5,6 +5,7 @@
 #include <QCamera>
 #include <QCameraImageCapture>
 #include <QMediaRecorder>
+#include <QMediaPlayer>
 #include <QLabel>
 
 namespace Ui {
@@ -19,12 +20,14 @@ private:
     QCamera *curCamera = Q_NULLPTR;
     QCameraImageCapture *imageCapture;      // 抓图
     QMediaRecorder *mediaRecorder;          // 录像
+    QMediaPlayer *player;                   // 视频播放
     QLabel *labelCameraState;
     QLabel *labelInfo;
     QLabel *labelCameraMode;
     void initCamera();              // 初始化摄像头
     void initImageCapture();        // 初始化静态抓图
     void initVideoRecorder();       // 初始化视频录制
+    void initVideoPlayer();         // 初始化视频播放
 
 
 public:
@@ -53,6 +56,8 @@ private slots:
     void on_stopRecorder_triggered();
 
     void on_exit_triggered();
+
+    void on_openVideo_clicked();
 
 private:
     Ui::MainWindow *ui;
