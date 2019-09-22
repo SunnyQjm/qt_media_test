@@ -7,6 +7,7 @@
 QT       += core gui
 QT       += multimedia
 QT       += multimediawidgets
+QT       += concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -27,10 +28,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    commendexecuter.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    commendexecuter.h
 
 FORMS += \
         mainwindow.ui

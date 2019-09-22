@@ -24,6 +24,7 @@ private:
     QLabel *labelCameraState;
     QLabel *labelInfo;
     QLabel *labelCameraMode;
+    QString filePath;
     void initCamera();              // 初始化摄像头
     void initImageCapture();        // 初始化静态抓图
     void initVideoRecorder();       // 初始化视频录制

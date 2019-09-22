@@ -10,6 +10,10 @@
 #include <QVideoProbe>
 #include <QDir>
 #include <QFileDialog>
+#include <QTemporaryFile>
+#include <QProcess>
+#include <QtConcurrent/QtConcurrent>
+#include <QThread>
 
 void MainWindow::initCamera()
 {
@@ -22,6 +26,7 @@ void MainWindow::initCamera()
     qDebug() << curCameraInfo.deviceName() << endl;
     // 创建摄像头对象
     curCamera = new QCamera(curCameraInfo, this);
+    curCamera->setCaptureMode(QCamera::CaptureVideo);
 //    QCameraViewfinderSettings viewFinderSettings;
 //    viewFinderSettings.setResolution(640, 480);
 //    viewFinderSettings.setMinimumFrameRate(15.0);
@@ -167,6 +172,15 @@ void MainWindow::onVideostatechanged(QMediaRecorder::State state)
 void MainWindow::onVideodurationchanged(qint64 duration)
 {
     ui->labelDuration->setText(QString("录制时间：%1 秒").arg(duration / 1000));
+    qDebug() << duration << endl;
+
+    if(duration < 1000) {
+        QString command = "smplayer /home/mingj/Videos/" + filePath + ".ogg -minigui";
+        QtConcurrent::run([](const QString &command) {
+            QProcess p(0);
+            p.execute(command);
+        }, QString(command));
+    }
 }
 
 /**
@@ -214,8 +228,12 @@ void MainWindow::on_startRecorder_triggered()
             QMessageBox::critical(this, "错误", "所设置的录音输出文件被占用，无法删除");
         }
     }
+    filePath = selectedFile;
     mediaRecorder->setOutputLocation(QUrl::fromLocalFile(selectedFile));
     mediaRecorder->record();
+
+
+
 }
 
 void MainWindow::on_stopRecorder_triggered()
@@ -233,11 +251,13 @@ void MainWindow::on_openVideo_clicked()
     // 打开文件
     QString curPath = QDir::homePath();         // 获取系统当前目录
     QString dlgTitle = "选择视频文件";            // 对话框标题
-    QString filter = "wmv文件(*.wmv);;mp4文件(*.mp4);;所有文件(*.*)";
+    QString filter = "所有文件(*.*);;wmv文件(*.wmv);;mp4文件(*.mp4)";
     QString file = QFileDialog::getOpenFileName(this, dlgTitle, curPath, filter);
     if(file.isEmpty())
         return;
-    QFileInfo fileInfo(file);
     player->setMedia(QUrl::fromLocalFile(file));
     player->play();
+
+
+//    }
 }
