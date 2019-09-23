@@ -14,6 +14,10 @@
 #include <QProcess>
 #include <QtConcurrent/QtConcurrent>
 #include <QThread>
+#include <VLCQtCore/Common.h>
+#include <VLCQtCore/Instance.h>
+#include <VLCQtCore/Media.h>
+#include <VLCQtCore/MediaPlayer.h>
 
 void MainWindow::initCamera()
 {
@@ -70,14 +74,20 @@ void MainWindow::initVideoRecorder()
     ui->chkMute->setChecked(mediaRecorder->isMuted());
     connect(mediaRecorder, SIGNAL(stateChanged(QMediaRecorder::State)), this, SLOT(onVideostatechanged(QMediaRecorder::State)));
     connect(mediaRecorder, SIGNAL(durationChanged(qint64)), this, SLOT(onVideodurationchanged(qint64)));
+    connect(mediaRecorder, SIGNAL(statusChanged(QMediaRecorder::Status)), this, SLOT(handleRecorderStatusChanged(QMediaRecorder::Status)));
 }
 
 void MainWindow::initVideoPlayer()
-{
+{/*
     player = new QMediaPlayer(this);
     player->setNotifyInterval(2000);
-    player->setVideoOutput(ui->videoWidget);
-
+    player->setVideoOutput(ui->videoWidget);*/
+    _instance = new VlcInstance(VlcCommon::args(), this);
+    _player = new VlcMediaPlayer(_instance);
+    _player->setVideoWidget(ui->videoWidget);
+    connect(_player, SIGNAL(timeChanged(int)), this, SLOT(handleTimeChange(int)));
+    connect(_player, SIGNAL(lengthChanged(int)), this, SLOT(handleLengthChange(int)));
+    connect(_player, SIGNAL(stateChanged()), this, SLOT(handleStateChange()));
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -175,11 +185,16 @@ void MainWindow::onVideodurationchanged(qint64 duration)
     qDebug() << duration << endl;
 
     if(duration < 1000) {
-        QString command = "smplayer /home/mingj/Videos/" + filePath + ".ogg -minigui";
-        QtConcurrent::run([](const QString &command) {
-            QProcess p(0);
-            p.execute(command);
-        }, QString(command));
+        QString file = "/home/mingj/Videos/" + filePath + ".ogg";
+//        QString command = "smplayer /home/mingj/Videos/" + filePath + ".ogg -minigui";
+        _media = new VlcMedia(file, true, _instance);
+        _player->open(_media);
+        _player->setTime(1000);
+//        _player->setPosition(1);
+//        QtConcurrent::run([](const QString &command) {
+//            QProcess p(0);
+//            p.execute(command);
+//        }, QString(command));
     }
 }
 
@@ -191,6 +206,33 @@ void MainWindow::on_openCamera_triggered()
 {
     // 开启摄像头
     curCamera->start();
+}
+
+void MainWindow::handleTimeChange(int time)
+{
+    qDebug() << "time change: "<< time << endl;
+}
+
+void MainWindow::handleLengthChange(int length)
+{
+    qDebug() << "length change: " << length << endl;
+    _player->setTime(2000);
+}
+
+void MainWindow::handleStateChange()
+{
+    qDebug() << "state change!!" << endl;
+}
+
+void MainWindow::handleRecorderStatusChanged(QMediaRecorder::Status status)
+{
+    switch (status) {
+    case QMediaRecorder::Status::RecordingStatus :
+        qDebug() << "Recording Status" << endl;
+        break;
+    default:
+        break;
+    }
 }
 
 void MainWindow::on_closeCamera_triggered()
@@ -255,8 +297,11 @@ void MainWindow::on_openVideo_clicked()
     QString file = QFileDialog::getOpenFileName(this, dlgTitle, curPath, filter);
     if(file.isEmpty())
         return;
-    player->setMedia(QUrl::fromLocalFile(file));
-    player->play();
+
+    _media = new VlcMedia(file, true, _instance);
+    _player->open(_media);
+//    player->setMedia(QUrl::fromLocalFile(file));
+//    player->play();
 
 
 //    }

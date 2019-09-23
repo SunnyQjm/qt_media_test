@@ -12,6 +12,10 @@ namespace Ui {
 class MainWindow;
 }
 
+class VlcInstance;
+class VlcMedia;
+class VlcMediaPlayer;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -21,6 +25,10 @@ private:
     QCameraImageCapture *imageCapture;      // 抓图
     QMediaRecorder *mediaRecorder;          // 录像
     QMediaPlayer *player;                   // 视频播放
+    // VLC
+    VlcInstance *_instance;
+    VlcMedia *_media;
+    VlcMediaPlayer *_player;
     QLabel *labelCameraState;
     QLabel *labelInfo;
     QLabel *labelCameraMode;
@@ -47,6 +55,11 @@ private slots:
     void onVideostatechanged(QMediaRecorder::State state);
     void onVideodurationchanged(qint64 duration);
     void on_openCamera_triggered();
+
+    void handleTimeChange(int time);
+    void handleLengthChange(int length);
+    void handleStateChange();
+    void handleRecorderStatusChanged(QMediaRecorder::Status status);
 
     void on_closeCamera_triggered();
 
