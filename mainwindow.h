@@ -12,9 +12,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class VlcInstance;
-class VlcMedia;
-class VlcMediaPlayer;
+
 
 class MainWindow : public QMainWindow
 {
@@ -25,10 +23,6 @@ private:
     QCameraImageCapture *imageCapture;      // 抓图
     QMediaRecorder *mediaRecorder;          // 录像
     QMediaPlayer *player;                   // 视频播放
-    // VLC
-    VlcInstance *_instance;
-    VlcMedia *_media;
-    VlcMediaPlayer *_player;
     QLabel *labelCameraState;
     QLabel *labelInfo;
     QLabel *labelCameraMode;
@@ -50,19 +44,9 @@ private slots:
     // QCamera的槽函数
     void onCamerastatechanged(QCamera::State state);
     void onCameracapturemodechanged(QCamera::CaptureModes mode);
-    // QCameraImageCapture的槽函数
-    void onImagereadyforcapture(bool ready);
-    void onImagecaptured(int id, const QImage &preview);
-    void onImagesaved(int id, const QString &fileName);
-    // QMediaRecorder的槽函数
-    void onVideostatechanged(QMediaRecorder::State state);
-    void onVideodurationchanged(qint64 duration);
+
     void on_openCamera_triggered();
 
-    void handleTimeChange(int time);
-    void handleLengthChange(int length);
-    void handleStateChange();
-    void handleRecorderStatusChanged(QMediaRecorder::Status status);
 
     void processVideoFrame(QVideoFrame frame);
 

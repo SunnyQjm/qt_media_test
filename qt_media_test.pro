@@ -40,7 +40,7 @@ HEADERS += \
 FORMS += \
         mainwindow.ui
 
-LIBS  += -lVLCQtCore -lVLCQtWidgets
+#LIBS  += -lVLCQtCore -lVLCQtWidgets
 
 RESOURCES += \
     resources.qrc
