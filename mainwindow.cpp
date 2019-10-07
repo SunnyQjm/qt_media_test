@@ -14,6 +14,7 @@
 #include <QProcess>
 #include <QtConcurrent/QtConcurrent>
 #include <QThread>
+#include <QVideoSurfaceFormat>
 #include <VLCQtCore/Common.h>
 #include <VLCQtCore/Instance.h>
 #include <VLCQtCore/Media.h>
@@ -30,15 +31,18 @@ void MainWindow::initCamera()
     qDebug() << curCameraInfo.deviceName() << endl;
     // 创建摄像头对象
     curCamera = new QCamera(curCameraInfo, this);
-    curCamera->setCaptureMode(QCamera::CaptureVideo);
-//    QCameraViewfinderSettings viewFinderSettings;
-//    viewFinderSettings.setResolution(640, 480);
-//    viewFinderSettings.setMinimumFrameRate(15.0);
-//    viewFinderSettings.setMaximumFrameRate(30.0);
-//    curCamera->setViewfinderSettings(viewFinderSettings);
-//    curCamera->setViewfinder(ui->viewFinder);
-//    curCamera->setCaptureMode(QCamera::CaptureViewfinder);
-
+    probe = new QVideoProbe();
+    if(probe->setSource(curCamera)) {
+        connect(probe, SIGNAL(videoFrameProbed(QVideoFrame)), this, SLOT(processVideoFrame(QVideoFrame)));
+    }
+    QCameraViewfinderSettings viewFinderSettings;
+    viewFinderSettings.setResolution(320, 240);
+    viewFinderSettings.setMinimumFrameRate(15.0);
+    viewFinderSettings.setMaximumFrameRate(30.0);
+    viewFinderSettings.setPixelFormat(QVideoFrame::Format_ARGB32);
+    curCamera->setViewfinderSettings(viewFinderSettings);
+    curCamera->setViewfinder(ui->viewFinder);
+    curCamera->setCaptureMode(QCamera::CaptureViewfinder);
     // 判断摄像头是否支持抓图、录制视频
     ui->checkStillImage->setChecked(
                 curCamera->isCaptureModeSupported(QCamera::CaptureStillImage));
@@ -78,10 +82,10 @@ void MainWindow::initVideoRecorder()
 }
 
 void MainWindow::initVideoPlayer()
-{/*
+{
     player = new QMediaPlayer(this);
-    player->setNotifyInterval(2000);
-    player->setVideoOutput(ui->videoWidget);*/
+//    player->setNotifyInterval(2000);
+//    player->setVideoOutput(ui->videoWidget);
     _instance = new VlcInstance(VlcCommon::args(), this);
     _player = new VlcMediaPlayer(_instance);
     _player->setVideoWidget(ui->videoWidget);
@@ -110,7 +114,7 @@ MainWindow::MainWindow(QWidget *parent) :
         initImageCapture();         // 初始化静态抓图
         initVideoRecorder();        // 初始化视频录制
         initVideoPlayer();
-//        curCamera->start();
+        curCamera->start();
     }
 }
 
@@ -184,12 +188,12 @@ void MainWindow::onVideodurationchanged(qint64 duration)
     ui->labelDuration->setText(QString("录制时间：%1 秒").arg(duration / 1000));
     qDebug() << duration << endl;
 
-    if(duration < 1000) {
+    if(duration > 1000 && duration <= 2000) {
         QString file = "/home/mingj/Videos/" + filePath + ".ogg";
 //        QString command = "smplayer /home/mingj/Videos/" + filePath + ".ogg -minigui";
-        _media = new VlcMedia(file, true, _instance);
+        _media = new VlcMedia(file, true, _instance );
         _player->open(_media);
-        _player->setTime(1000);
+//        _player->setTime(1000);
 //        _player->setPosition(1);
 //        QtConcurrent::run([](const QString &command) {
 //            QProcess p(0);
@@ -216,7 +220,7 @@ void MainWindow::handleTimeChange(int time)
 void MainWindow::handleLengthChange(int length)
 {
     qDebug() << "length change: " << length << endl;
-    _player->setTime(2000);
+//    _player->setTime(2000);
 }
 
 void MainWindow::handleStateChange()
@@ -233,6 +237,12 @@ void MainWindow::handleRecorderStatusChanged(QMediaRecorder::Status status)
     default:
         break;
     }
+}
+
+void MainWindow::processVideoFrame(QVideoFrame frame)
+{
+//    qDebug() << "fuck" << endl;
+    ui->myVideoPlayer->update(frame);
 }
 
 void MainWindow::on_closeCamera_triggered()
@@ -280,6 +290,7 @@ void MainWindow::on_startRecorder_triggered()
 
 void MainWindow::on_stopRecorder_triggered()
 {
+
     mediaRecorder->stop();
 }
 

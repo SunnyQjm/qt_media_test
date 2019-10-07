@@ -7,7 +7,7 @@
 #include <QMediaRecorder>
 #include <QMediaPlayer>
 #include <QLabel>
-
+#include <QVideoProbe>
 namespace Ui {
 class MainWindow;
 }
@@ -33,6 +33,9 @@ private:
     QLabel *labelInfo;
     QLabel *labelCameraMode;
     QString filePath;
+    QVideoProbe *probe;
+
+
     void initCamera();              // 初始化摄像头
     void initImageCapture();        // 初始化静态抓图
     void initVideoRecorder();       // 初始化视频录制
@@ -60,6 +63,8 @@ private slots:
     void handleLengthChange(int length);
     void handleStateChange();
     void handleRecorderStatusChanged(QMediaRecorder::Status status);
+
+    void processVideoFrame(QVideoFrame frame);
 
     void on_closeCamera_triggered();
 

@@ -29,11 +29,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    commendexecuter.cpp
+    commendexecuter.cpp \
+    myvideoplayer.cpp
 
 HEADERS += \
         mainwindow.h \
-    commendexecuter.h
+    commendexecuter.h \
+    myvideoplayer.h
 
 FORMS += \
         mainwindow.ui
